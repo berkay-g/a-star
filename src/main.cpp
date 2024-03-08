@@ -4,7 +4,7 @@
 
 int EventFilter(void *userdata, SDL_Event *event)
 {
-    if (event->type == SDL_EVENT_WINDOW_RESIZED)
+    if (event->type == SDL_WINDOWEVENT_RESIZED)
     {
         // Handle window resize event here
         App *pThis = reinterpret_cast<App *>(userdata);

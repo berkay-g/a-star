@@ -1,7 +1,7 @@
-// dear imgui: Renderer Backend for SDL_Renderer for SDL3
-// (Requires: SDL 3.0.0+)
+// dear imgui: Renderer Backend for SDL_Renderer for SDL2
+// (Requires: SDL 2.0.17+)
 
-// Note how SDL_Renderer is an _optional_ component of SDL3.
+// Note how SDL_Renderer is an _optional_ component of SDL2.
 // For a multi-platform app consider using e.g. SDL+DirectX on Windows and SDL+OpenGL on Linux/OSX.
 // If your application will want to render any non trivial amount of graphics other than UI,
 // please be aware that SDL_Renderer currently offers a limited graphic API to the end-user and
@@ -22,11 +22,16 @@
 // - Introduction, links and more at the top of imgui.cpp
 
 // CHANGELOG
-//  2023-05-30: Initial version.
+//  2023-05-30: Renamed imgui_impl_sdlrenderer.h/.cpp to imgui_impl_sdlrenderer2.h/.cpp to accommodate for upcoming SDL3.
+//  2022-10-11: Using 'nullptr' instead of 'NULL' as per our switch to C++11.
+//  2021-12-21: Update SDL_RenderGeometryRaw() format to work with SDL 2.0.19.
+//  2021-12-03: Added support for large mesh (64K+ vertices), enable ImGuiBackendFlags_RendererHasVtxOffset flag.
+//  2021-10-06: Backup and restore modified ClipRect/Viewport.
+//  2021-09-21: Initial version.
 
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
-#include "imgui_impl_sdlrenderer3.h"
+#include "imgui_impl_sdlrenderer2.h"
 #include <stdint.h>     // intptr_t
 
 // Clang warnings with -Weverything
@@ -36,37 +41,37 @@
 #endif
 
 // SDL
-#include <SDL3/SDL.h>
-#if !SDL_VERSION_ATLEAST(3,0,0)
-#error This backend requires SDL 3.0.0+
+#include <SDL.h>
+#if !SDL_VERSION_ATLEAST(2,0,17)
+#error This backend requires SDL 2.0.17+ because of SDL_RenderGeometry() function
 #endif
 
 // SDL_Renderer data
-struct ImGui_ImplSDLRenderer3_Data
+struct ImGui_ImplSDLRenderer2_Data
 {
     SDL_Renderer*   SDLRenderer;
     SDL_Texture*    FontTexture;
-    ImGui_ImplSDLRenderer3_Data() { memset((void*)this, 0, sizeof(*this)); }
+    ImGui_ImplSDLRenderer2_Data() { memset((void*)this, 0, sizeof(*this)); }
 };
 
 // Backend data stored in io.BackendRendererUserData to allow support for multiple Dear ImGui contexts
 // It is STRONGLY preferred that you use docking branch with multi-viewports (== single Dear ImGui context + multiple windows) instead of multiple Dear ImGui contexts.
-static ImGui_ImplSDLRenderer3_Data* ImGui_ImplSDLRenderer3_GetBackendData()
+static ImGui_ImplSDLRenderer2_Data* ImGui_ImplSDLRenderer2_GetBackendData()
 {
-    return ImGui::GetCurrentContext() ? (ImGui_ImplSDLRenderer3_Data*)ImGui::GetIO().BackendRendererUserData : nullptr;
+    return ImGui::GetCurrentContext() ? (ImGui_ImplSDLRenderer2_Data*)ImGui::GetIO().BackendRendererUserData : nullptr;
 }
 
 // Functions
-bool ImGui_ImplSDLRenderer3_Init(SDL_Renderer* renderer)
+bool ImGui_ImplSDLRenderer2_Init(SDL_Renderer* renderer)
 {
     ImGuiIO& io = ImGui::GetIO();
     IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
     IM_ASSERT(renderer != nullptr && "SDL_Renderer not initialized!");
 
     // Setup backend capabilities flags
-    ImGui_ImplSDLRenderer3_Data* bd = IM_NEW(ImGui_ImplSDLRenderer3_Data)();
+    ImGui_ImplSDLRenderer2_Data* bd = IM_NEW(ImGui_ImplSDLRenderer2_Data)();
     io.BackendRendererUserData = (void*)bd;
-    io.BackendRendererName = "imgui_impl_sdlrenderer3";
+    io.BackendRendererName = "imgui_impl_sdlrenderer2";
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
 
     bd->SDLRenderer = renderer;
@@ -74,13 +79,13 @@ bool ImGui_ImplSDLRenderer3_Init(SDL_Renderer* renderer)
     return true;
 }
 
-void ImGui_ImplSDLRenderer3_Shutdown()
+void ImGui_ImplSDLRenderer2_Shutdown()
 {
-    ImGui_ImplSDLRenderer3_Data* bd = ImGui_ImplSDLRenderer3_GetBackendData();
+    ImGui_ImplSDLRenderer2_Data* bd = ImGui_ImplSDLRenderer2_GetBackendData();
     IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
     ImGuiIO& io = ImGui::GetIO();
 
-    ImGui_ImplSDLRenderer3_DestroyDeviceObjects();
+    ImGui_ImplSDLRenderer2_DestroyDeviceObjects();
 
     io.BackendRendererName = nullptr;
     io.BackendRendererUserData = nullptr;
@@ -88,35 +93,35 @@ void ImGui_ImplSDLRenderer3_Shutdown()
     IM_DELETE(bd);
 }
 
-static void ImGui_ImplSDLRenderer3_SetupRenderState()
+static void ImGui_ImplSDLRenderer2_SetupRenderState()
 {
-	ImGui_ImplSDLRenderer3_Data* bd = ImGui_ImplSDLRenderer3_GetBackendData();
+	ImGui_ImplSDLRenderer2_Data* bd = ImGui_ImplSDLRenderer2_GetBackendData();
 
 	// Clear out any viewports and cliprect set by the user
     // FIXME: Technically speaking there are lots of other things we could backup/setup/restore during our render process.
-	SDL_SetRenderViewport(bd->SDLRenderer, nullptr);
-	SDL_SetRenderClipRect(bd->SDLRenderer, nullptr);
+	SDL_RenderSetViewport(bd->SDLRenderer, nullptr);
+	SDL_RenderSetClipRect(bd->SDLRenderer, nullptr);
 }
 
-void ImGui_ImplSDLRenderer3_NewFrame()
+void ImGui_ImplSDLRenderer2_NewFrame()
 {
-    ImGui_ImplSDLRenderer3_Data* bd = ImGui_ImplSDLRenderer3_GetBackendData();
-    IM_ASSERT(bd != nullptr && "Did you call ImGui_ImplSDLRenderer3_Init()?");
+    ImGui_ImplSDLRenderer2_Data* bd = ImGui_ImplSDLRenderer2_GetBackendData();
+    IM_ASSERT(bd != nullptr && "Did you call ImGui_ImplSDLRenderer2_Init()?");
 
     if (!bd->FontTexture)
-        ImGui_ImplSDLRenderer3_CreateDeviceObjects();
+        ImGui_ImplSDLRenderer2_CreateDeviceObjects();
 }
 
-void ImGui_ImplSDLRenderer3_RenderDrawData(ImDrawData* draw_data)
+void ImGui_ImplSDLRenderer2_RenderDrawData(ImDrawData* draw_data)
 {
-	ImGui_ImplSDLRenderer3_Data* bd = ImGui_ImplSDLRenderer3_GetBackendData();
+	ImGui_ImplSDLRenderer2_Data* bd = ImGui_ImplSDLRenderer2_GetBackendData();
 
 	// If there's a scale factor set by the user, use that instead
     // If the user has specified a scale factor to SDL_Renderer already via SDL_RenderSetScale(), SDL will scale whatever we pass
     // to SDL_RenderGeometryRaw() by that scale factor. In that case we don't want to be also scaling it ourselves here.
     float rsx = 1.0f;
 	float rsy = 1.0f;
-	SDL_GetRenderScale(bd->SDLRenderer, &rsx, &rsy);
+	SDL_RenderGetScale(bd->SDLRenderer, &rsx, &rsy);
     ImVec2 render_scale;
 	render_scale.x = (rsx == 1.0f) ? draw_data->FramebufferScale.x : 1.0f;
 	render_scale.y = (rsy == 1.0f) ? draw_data->FramebufferScale.y : 1.0f;
@@ -135,16 +140,16 @@ void ImGui_ImplSDLRenderer3_RenderDrawData(ImDrawData* draw_data)
         SDL_Rect    ClipRect;
     };
     BackupSDLRendererState old = {};
-    old.ClipEnabled = SDL_RenderClipEnabled(bd->SDLRenderer) == SDL_TRUE;
-    SDL_GetRenderViewport(bd->SDLRenderer, &old.Viewport);
-    SDL_GetRenderClipRect(bd->SDLRenderer, &old.ClipRect);
+    old.ClipEnabled = SDL_RenderIsClipEnabled(bd->SDLRenderer) == SDL_TRUE;
+    SDL_RenderGetViewport(bd->SDLRenderer, &old.Viewport);
+    SDL_RenderGetClipRect(bd->SDLRenderer, &old.ClipRect);
 
 	// Will project scissor/clipping rectangles into framebuffer space
 	ImVec2 clip_off = draw_data->DisplayPos;         // (0,0) unless using multi-viewports
 	ImVec2 clip_scale = render_scale;
 
     // Render command lists
-    ImGui_ImplSDLRenderer3_SetupRenderState();
+    ImGui_ImplSDLRenderer2_SetupRenderState();
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
@@ -159,7 +164,7 @@ void ImGui_ImplSDLRenderer3_RenderDrawData(ImDrawData* draw_data)
                 // User callback, registered via ImDrawList::AddCallback()
                 // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
                 if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
-                    ImGui_ImplSDLRenderer3_SetupRenderState();
+                    ImGui_ImplSDLRenderer2_SetupRenderState();
                 else
                     pcmd->UserCallback(cmd_list, pcmd);
             }
@@ -176,7 +181,7 @@ void ImGui_ImplSDLRenderer3_RenderDrawData(ImDrawData* draw_data)
                     continue;
 
                 SDL_Rect r = { (int)(clip_min.x), (int)(clip_min.y), (int)(clip_max.x - clip_min.x), (int)(clip_max.y - clip_min.y) };
-                SDL_SetRenderClipRect(bd->SDLRenderer, &r);
+                SDL_RenderSetClipRect(bd->SDLRenderer, &r);
 
                 const float* xy = (const float*)(const void*)((const char*)(vtx_buffer + pcmd->VtxOffset) + offsetof(ImDrawVert, pos));
                 const float* uv = (const float*)(const void*)((const char*)(vtx_buffer + pcmd->VtxOffset) + offsetof(ImDrawVert, uv));
@@ -199,15 +204,15 @@ void ImGui_ImplSDLRenderer3_RenderDrawData(ImDrawData* draw_data)
     }
 
     // Restore modified SDL_Renderer state
-    SDL_SetRenderViewport(bd->SDLRenderer, &old.Viewport);
-    SDL_SetRenderClipRect(bd->SDLRenderer, old.ClipEnabled ? &old.ClipRect : nullptr);
+    SDL_RenderSetViewport(bd->SDLRenderer, &old.Viewport);
+    SDL_RenderSetClipRect(bd->SDLRenderer, old.ClipEnabled ? &old.ClipRect : nullptr);
 }
 
 // Called by Init/NewFrame/Shutdown
-bool ImGui_ImplSDLRenderer3_CreateFontsTexture()
+bool ImGui_ImplSDLRenderer2_CreateFontsTexture()
 {
     ImGuiIO& io = ImGui::GetIO();
-    ImGui_ImplSDLRenderer3_Data* bd = ImGui_ImplSDLRenderer3_GetBackendData();
+    ImGui_ImplSDLRenderer2_Data* bd = ImGui_ImplSDLRenderer2_GetBackendData();
 
     // Build texture atlas
     unsigned char* pixels;
@@ -224,7 +229,7 @@ bool ImGui_ImplSDLRenderer3_CreateFontsTexture()
     }
     SDL_UpdateTexture(bd->FontTexture, nullptr, pixels, 4 * width);
     SDL_SetTextureBlendMode(bd->FontTexture, SDL_BLENDMODE_BLEND);
-    SDL_SetTextureScaleMode(bd->FontTexture, SDL_SCALEMODE_LINEAR);
+    SDL_SetTextureScaleMode(bd->FontTexture, SDL_ScaleModeLinear);
 
     // Store our identifier
     io.Fonts->SetTexID((ImTextureID)(intptr_t)bd->FontTexture);
@@ -232,10 +237,10 @@ bool ImGui_ImplSDLRenderer3_CreateFontsTexture()
     return true;
 }
 
-void ImGui_ImplSDLRenderer3_DestroyFontsTexture()
+void ImGui_ImplSDLRenderer2_DestroyFontsTexture()
 {
     ImGuiIO& io = ImGui::GetIO();
-    ImGui_ImplSDLRenderer3_Data* bd = ImGui_ImplSDLRenderer3_GetBackendData();
+    ImGui_ImplSDLRenderer2_Data* bd = ImGui_ImplSDLRenderer2_GetBackendData();
     if (bd->FontTexture)
     {
         io.Fonts->SetTexID(0);
@@ -244,14 +249,14 @@ void ImGui_ImplSDLRenderer3_DestroyFontsTexture()
     }
 }
 
-bool ImGui_ImplSDLRenderer3_CreateDeviceObjects()
+bool ImGui_ImplSDLRenderer2_CreateDeviceObjects()
 {
-    return ImGui_ImplSDLRenderer3_CreateFontsTexture();
+    return ImGui_ImplSDLRenderer2_CreateFontsTexture();
 }
 
-void ImGui_ImplSDLRenderer3_DestroyDeviceObjects()
+void ImGui_ImplSDLRenderer2_DestroyDeviceObjects()
 {
-    ImGui_ImplSDLRenderer3_DestroyFontsTexture();
+    ImGui_ImplSDLRenderer2_DestroyFontsTexture();
 }
 
 //-----------------------------------------------------------------------------

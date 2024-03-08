@@ -1,7 +1,7 @@
 #pragma once
 
 #define SDL_MAIN_HANDLED
-#include "SDL3/SDL.h"
+#include "SDL.h"
 
 // #define IMGUI
 
@@ -28,7 +28,7 @@ public:
 
     void ImguiRender();
 
-    int SetWindowMinimumSize(int min_width, int min_height);
+    void SetWindowMinimumSize(int min_width, int min_height);
     void SetWindowWidthHeight(int w, int h);
 
     const int GetWindowWidth() { return window_width; }

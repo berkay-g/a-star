@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Color.h"
-#include "SDL3/SDL_render.h"
+#include "SDL_render.h"
 
 #include <vector>
 #include <limits>
@@ -15,21 +15,21 @@
 class Node
 {
 public:
-    float x, y;
+    int x, y;
     int row, col;
     Color color;
     std::vector<Node*> neighbors;
-    float width;
+    int width;
     int total_rows;
 
     float f_score = std::numeric_limits<float>::infinity();
     float g_score = std::numeric_limits<float>::infinity();
 
-    Node(int row, int col, float width, int total_rows)
+    Node(int row, int col, int width, int total_rows)
         : row(row), col(col), width(width), total_rows(total_rows)
     {
-        x = row * width * 1.f;
-        y = col * width * 1.f;
+        x = row * width;
+        y = col * width;
         color = Color::White;
     }
 
@@ -121,7 +121,7 @@ public:
 };
 
 int rows = 50;
-float width = 800;
+int width = 800;
 std::vector<std::vector<Node>> grid;
 bool started = false;
 Node *start = NULL, *end = NULL;
@@ -130,7 +130,7 @@ SDL_Renderer *rendra;
 void draw_node(SDL_Renderer *renderer, Node &node)
 {
     SDL_SetRenderDrawColor(renderer, node.color.r, node.color.g, node.color.b, node.color.a);
-    SDL_FRect rect = {node.x, node.y, node.width, node.width};
+    SDL_Rect rect = {node.x, node.y, node.width, node.width};
     SDL_RenderFillRect(renderer, &rect);
 }
 
@@ -139,7 +139,7 @@ int h(int x1, int y1, int x2, int y2)
     return std::abs(x1 - x2) + std::abs(y1 - y2);
 }
 
-std::vector<std::vector<Node>> make_grid(int rows, float width)
+std::vector<std::vector<Node>> make_grid(int rows, int width)
 {
     std::vector<std::vector<Node>> grid;
     int gap = (int)width / rows;
@@ -149,27 +149,27 @@ std::vector<std::vector<Node>> make_grid(int rows, float width)
         grid.push_back({});
         for (int j = 0; j < rows; j++)
         {
-            grid[i].push_back(Node(i, j, (float)gap, rows));
+            grid[i].push_back(Node(i, j, gap, rows));
         }
     }
     return grid;
 }
 
-void draw_grid(SDL_Renderer *renderer, int rows, float width)
+void draw_grid(SDL_Renderer *renderer, int rows, int width)
 {
     int gap = (int)width / rows;
     SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
-    for (float i = 0; i < rows; i++)
+    for (int i = 0; i < rows; i++)
     {
-        SDL_RenderLine(renderer, 0, i * gap, width, i * gap);
-        for (float j = 0; j < rows; j++)
+        SDL_RenderDrawLine(renderer, 0, i * gap, width, i * gap);
+        for (int j = 0; j < rows; j++)
         {
-            SDL_RenderLine(renderer, j * gap, 0, j * gap, width);
+            SDL_RenderDrawLine(renderer, j * gap, 0, j * gap, width);
         }
     }
 }
 
-std::pair<int, int> get_clicked_pos(float mouseX, float mouseY, int rows, float width)
+std::pair<int, int> get_clicked_pos(int mouseX, int mouseY, int rows, int width)
 {
     int gap = (int)width / rows;
     int col = (int)mouseY / gap;
@@ -238,7 +238,7 @@ void algorithm()
     {
         while (SDL_PollEvent(&event))
         {
-            if (event.type == SDL_EVENT_QUIT || (event.type == SDL_EVENT_KEY_DOWN && event.key.keysym.sym == SDLK_ESCAPE))
+            if (event.type == SDL_QUIT || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE))
             {
                 started = false;
                 return;
@@ -300,7 +300,7 @@ void mouseEvent(SDL_Event event)
 
     if (event.button.button == SDL_BUTTON_LMASK || event.button.button == SDL_BUTTON_LEFT)
     {
-        float mouseX, mouseY;
+        int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
         std::pair<int, int> rowcol = get_clicked_pos(mouseX, mouseY, rows, width);
         Node *node = &grid[rowcol.first][rowcol.second];
@@ -321,7 +321,7 @@ void mouseEvent(SDL_Event event)
     }
     else if (event.button.button == SDL_BUTTON_RMASK || event.button.button == SDL_BUTTON_RIGHT)
     {
-        float mouseX, mouseY;
+        int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
         std::pair<int, int> rowcol = get_clicked_pos(mouseX, mouseY, rows, width);
         Node *node = &grid[rowcol.first][rowcol.second];

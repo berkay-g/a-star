@@ -15,10 +15,10 @@ void App::Update(SDL_Event &event, bool &quit, float deltaTime)
         // ImGui_ImplSDL3_ProcessEvent(&event);
         switch (event.type)
         {
-        case SDL_EVENT_QUIT:
+        case SDL_QUIT:
             quit = 1;
             break;
-        case SDL_EVENT_KEY_DOWN:
+        case SDL_KEYDOWN:
             if (event.key.keysym.sym == SDLK_ESCAPE)
                 quit = 1;
 
@@ -34,11 +34,11 @@ void App::Update(SDL_Event &event, bool &quit, float deltaTime)
 
             keyEvent(event);
             break;
-        case SDL_EVENT_MOUSE_MOTION:
+        case SDL_MOUSEMOTION:
             if (event.motion.x < 0 || event.motion.y < 0 || event.motion.x >= 800 || event.motion.y >= 800)
                 break;
             
-        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+        case SDL_MOUSEBUTTONDOWN:
             mouseEvent(event);
             break;
         }

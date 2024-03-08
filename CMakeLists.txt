@@ -23,7 +23,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/SDL/cmake)
 add_executable(${PROJECT_NAME} ${HEADER_FILES} ${THIRD_PARTY} ${SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/thirdparty/)
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3-static)
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL2-static)
 
 if (MSVC)
 	message("MSVC")

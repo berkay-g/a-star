@@ -36,7 +36,7 @@ Andreas Schiffler -- aschiffler at ferzkopp dot net
 */
 Uint32 _getTicks()
 {
-	Uint32 ticks = (Uint32)SDL_GetTicks();
+	Uint32 ticks = SDL_GetTicks();
 
 	/* 
 	* Since baseticks!=0 is used to track initialization

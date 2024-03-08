@@ -27,7 +27,6 @@ Andreas Schiffler -- aschiffler at ferzkopp dot net
 
 */
 
-
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -84,7 +83,7 @@ to a situation where the program can segfault.
 Uint32 _colorkey(SDL_Surface *src)
 {
 	Uint32 key = 0; 
-	SDL_GetSurfaceColorKey(src, &key);
+	SDL_GetColorKey(src, &key);
 	return key;
 }
 
@@ -817,7 +816,7 @@ SDL_Surface* rotateSurface90Degrees(SDL_Surface* src, int numClockwiseTurns)
 	    return NULL; 
 	}
 
-	if ((src->format->bits_per_pixel % 8) != 0) {
+	if ((src->format->BitsPerPixel % 8) != 0) {
 		SDL_SetError("Invalid source surface bit depth");
 	    return NULL; 
 	}
@@ -837,11 +836,11 @@ SDL_Surface* rotateSurface90Degrees(SDL_Surface* src, int numClockwiseTurns)
 		newHeight = src->h;
 	}
 
-	dst = SDL_CreateSurface(newWidth, newHeight, SDL_GetPixelFormatEnumForMasks(src->format->bits_per_pixel,
+	dst = SDL_CreateRGBSurface( src->flags, newWidth, newHeight, src->format->BitsPerPixel,
 		src->format->Rmask,
 		src->format->Gmask, 
 		src->format->Bmask, 
-		src->format->Amask));
+		src->format->Amask);
 	if(!dst) {
 		SDL_SetError("Could not create destination surface"); 
 		return NULL;
@@ -855,7 +854,7 @@ SDL_Surface* rotateSurface90Degrees(SDL_Surface* src, int numClockwiseTurns)
 	}
 
 	/* Calculate byte-per-pixel */
-	bpp = src->format->bits_per_pixel / 8;
+	bpp = src->format->BitsPerPixel / 8;
 
 	switch(normalizedClockwiseTurns) {
 	case 0: /* Make a copy of the surface */
@@ -1075,8 +1074,8 @@ SDL_Surface *rotozoomSurfaceXY(SDL_Surface * src, double angle, double zoomx, do
 	/*
 	* Determine if source surface is 32bit or 8bit 
 	*/
-	is32bit = (src->format->bits_per_pixel == 32);
-	if ((is32bit) || (src->format->bits_per_pixel == 8)) {
+	is32bit = (src->format->BitsPerPixel == 32);
+	if ((is32bit) || (src->format->BitsPerPixel == 8)) {
 		/*
 		* Use source surface 'as is' 
 		*/
@@ -1087,13 +1086,13 @@ SDL_Surface *rotozoomSurfaceXY(SDL_Surface * src, double angle, double zoomx, do
 		* New source surface is 32bit with a defined RGBA ordering 
 		*/
 		rz_src =
-			SDL_CreateSurface(src->w, src->h, SDL_GetPixelFormatEnumForMasks(32, 
+			SDL_CreateRGBSurface(SDL_SWSURFACE, src->w, src->h, 32, 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
 			0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
 #else
 			0xff000000,  0x00ff0000, 0x0000ff00, 0x000000ff
 #endif
-			));
+			);
 
 		SDL_BlitSurface(src, NULL, rz_src, NULL);
 
@@ -1148,14 +1147,14 @@ SDL_Surface *rotozoomSurfaceXY(SDL_Surface * src, double angle, double zoomx, do
 			* Target surface is 32bit with source RGBA/ABGR ordering 
 			*/
 			rz_dst =
-				SDL_CreateSurface(dstwidth, dstheight + GUARD_ROWS, SDL_GetPixelFormatEnumForMasks(32,
+				SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 32,
 				rz_src->format->Rmask, rz_src->format->Gmask,
-				rz_src->format->Bmask, rz_src->format->Amask));
+				rz_src->format->Bmask, rz_src->format->Amask);
 		} else {
 			/*
 			* Target surface is 8bit 
 			*/
-			rz_dst = SDL_CreateSurface(dstwidth, dstheight + GUARD_ROWS, SDL_GetPixelFormatEnumForMasks(8, 0, 0, 0, 0));
+			rz_dst = SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 8, 0, 0, 0, 0);
 		}
 
 		/* Check target */
@@ -1228,14 +1227,14 @@ SDL_Surface *rotozoomSurfaceXY(SDL_Surface * src, double angle, double zoomx, do
 			* Target surface is 32bit with source RGBA/ABGR ordering 
 			*/
 			rz_dst =
-				SDL_CreateSurface(dstwidth, dstheight + GUARD_ROWS, SDL_GetPixelFormatEnumForMasks(32,
+				SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 32,
 				rz_src->format->Rmask, rz_src->format->Gmask,
-				rz_src->format->Bmask, rz_src->format->Amask));
+				rz_src->format->Bmask, rz_src->format->Amask);
 		} else {
 			/*
 			* Target surface is 8bit 
 			*/
-			rz_dst = SDL_CreateSurface(dstwidth, dstheight + GUARD_ROWS, SDL_GetPixelFormatEnumForMasks(8, 0, 0, 0, 0));
+			rz_dst = SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 8, 0, 0, 0, 0);
 		}
 
 		/* Check target */
@@ -1288,7 +1287,7 @@ SDL_Surface *rotozoomSurfaceXY(SDL_Surface * src, double angle, double zoomx, do
 	* Cleanup temp surface 
 	*/
 	if (src_converted) {
-		SDL_DestroySurface(rz_src);
+		SDL_FreeSurface(rz_src);
 	}
 
 	/*
@@ -1377,8 +1376,8 @@ SDL_Surface *zoomSurface(SDL_Surface * src, double zoomx, double zoomy, int smoo
 	/*
 	* Determine if source surface is 32bit or 8bit 
 	*/
-	is32bit = (src->format->bits_per_pixel == 32);
-	if ((is32bit) || (src->format->bits_per_pixel == 8)) {
+	is32bit = (src->format->BitsPerPixel == 32);
+	if ((is32bit) || (src->format->BitsPerPixel == 8)) {
 		/*
 		* Use source surface 'as is' 
 		*/
@@ -1389,13 +1388,13 @@ SDL_Surface *zoomSurface(SDL_Surface * src, double zoomx, double zoomy, int smoo
 		* New source surface is 32bit with a defined RGBA ordering 
 		*/
 		rz_src =
-			SDL_CreateSurface(src->w, src->h, SDL_GetPixelFormatEnumForMasks(32, 
+			SDL_CreateRGBSurface(SDL_SWSURFACE, src->w, src->h, 32, 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
 			0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
 #else
 			0xff000000,  0x00ff0000, 0x0000ff00, 0x000000ff
 #endif
-			));
+			);
 		if (rz_src == NULL) {
 			return NULL;
 		}
@@ -1421,14 +1420,14 @@ SDL_Surface *zoomSurface(SDL_Surface * src, double zoomx, double zoomy, int smoo
 		* Target surface is 32bit with source RGBA/ABGR ordering 
 		*/
 		rz_dst =
-			SDL_CreateSurface(dstwidth, dstheight + GUARD_ROWS, SDL_GetPixelFormatEnumForMasks(32,
+			SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 32,
 			rz_src->format->Rmask, rz_src->format->Gmask,
-			rz_src->format->Bmask, rz_src->format->Amask));
+			rz_src->format->Bmask, rz_src->format->Amask);
 	} else {
 		/*
 		* Target surface is 8bit 
 		*/
-		rz_dst = SDL_CreateSurface(dstwidth, dstheight + GUARD_ROWS, SDL_GetPixelFormatEnumForMasks(8, 0, 0, 0, 0));
+		rz_dst = SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 8, 0, 0, 0, 0);
 	}
 
 	/* Check target */
@@ -1437,7 +1436,7 @@ SDL_Surface *zoomSurface(SDL_Surface * src, double zoomx, double zoomy, int smoo
 		* Cleanup temp surface 
 		*/
 		if (src_converted) {
-			SDL_DestroySurface(rz_src);
+			SDL_FreeSurface(rz_src);
 		}		
 		return NULL;
 	}
@@ -1484,7 +1483,7 @@ SDL_Surface *zoomSurface(SDL_Surface * src, double zoomx, double zoomy, int smoo
 	* Cleanup temp surface 
 	*/
 	if (src_converted) {
-		SDL_DestroySurface(rz_src);
+		SDL_FreeSurface(rz_src);
 	}
 
 	/*
@@ -1530,8 +1529,8 @@ SDL_Surface *shrinkSurface(SDL_Surface *src, int factorx, int factory)
 	/*
 	* Determine if source surface is 32bit or 8bit 
 	*/
-	is32bit = (src->format->bits_per_pixel == 32);
-	if ((is32bit) || (src->format->bits_per_pixel == 8)) {
+	is32bit = (src->format->BitsPerPixel == 32);
+	if ((is32bit) || (src->format->BitsPerPixel == 8)) {
 		/*
 		* Use source surface 'as is' 
 		*/
@@ -1541,13 +1540,13 @@ SDL_Surface *shrinkSurface(SDL_Surface *src, int factorx, int factory)
 		/*
 		* New source surface is 32bit with a defined RGBA ordering 
 		*/
-		rz_src = SDL_CreateSurface(src->w, src->h, SDL_GetPixelFormatEnumForMasks(32, 
+		rz_src = SDL_CreateRGBSurface(SDL_SWSURFACE, src->w, src->h, 32, 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
 			0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
 #else
 			0xff000000,  0x00ff0000, 0x0000ff00, 0x000000ff
 #endif
-		));
+			);
 		if (rz_src==NULL) {
 			haveError = 1;
 			goto exitShrinkSurface;
@@ -1583,14 +1582,14 @@ SDL_Surface *shrinkSurface(SDL_Surface *src, int factorx, int factory)
 		* Target surface is 32bit with source RGBA/ABGR ordering 
 		*/
 		rz_dst =
-			SDL_CreateSurface(dstwidth, dstheight + GUARD_ROWS, SDL_GetPixelFormatEnumForMasks(32,
+			SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 32,
 			rz_src->format->Rmask, rz_src->format->Gmask,
-			rz_src->format->Bmask, rz_src->format->Amask));
+			rz_src->format->Bmask, rz_src->format->Amask);
 	} else {
 		/*
 		* Target surface is 8bit 
 		*/
-		rz_dst = SDL_CreateSurface(dstwidth, dstheight + GUARD_ROWS, SDL_GetPixelFormatEnumForMasks(8, 0, 0, 0, 0));
+		rz_dst = SDL_CreateRGBSurface(SDL_SWSURFACE, dstwidth, dstheight + GUARD_ROWS, 8, 0, 0, 0, 0);
 	}
 
 	/* Check target */
@@ -1645,14 +1644,14 @@ exitShrinkSurface:
 		* Cleanup temp surface 
 		*/
 		if (src_converted==1) {
-			SDL_DestroySurface(rz_src);
+			SDL_FreeSurface(rz_src);
 		}
 	}
 
 	/* Check error state; maybe need to cleanup destination */
 	if (haveError==1) {
 		if (rz_dst!=NULL) {
-			SDL_DestroySurface(rz_dst);
+			SDL_FreeSurface(rz_dst);
 		}
 		rz_dst=NULL;
 	} 

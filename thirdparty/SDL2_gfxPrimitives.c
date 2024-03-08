@@ -72,7 +72,7 @@ typedef struct {
 */
 int pixel(SDL_Renderer *renderer, Sint16 x, Sint16 y)
 {
-	return SDL_RenderPoint(renderer, x, y);
+	return SDL_RenderDrawPoint(renderer, x, y);
 }
 
 /*!
@@ -109,7 +109,7 @@ int pixelRGBA(SDL_Renderer * renderer, Sint16 x, Sint16 y, Uint8 r, Uint8 g, Uin
 	int result = 0;
 	result |= SDL_SetRenderDrawBlendMode(renderer, (a == 255) ? SDL_BLENDMODE_NONE : SDL_BLENDMODE_BLEND);
 	result |= SDL_SetRenderDrawColor(renderer, r, g, b, a);
-	result |= SDL_RenderPoint(renderer, x, y);
+	result |= SDL_RenderDrawPoint(renderer, x, y);
 	return result;
 }
 
@@ -155,9 +155,9 @@ int pixelRGBAWeight(SDL_Renderer * renderer, Sint16 x, Sint16 y, Uint8 r, Uint8 
 
 \returns Returns 0 on success, -1 on failure.
 */
-int hline(SDL_Renderer * renderer, float x1, float x2, float y)
+int hline(SDL_Renderer * renderer, Sint16 x1, Sint16 x2, Sint16 y)
 {
-	return SDL_RenderLine(renderer, x1, y, x2, y);;
+	return SDL_RenderDrawLine(renderer, x1, y, x2, y);;
 }
 
 
@@ -192,12 +192,12 @@ int hlineColor(SDL_Renderer * renderer, Sint16 x1, Sint16 x2, Sint16 y, Uint32 c
 
 \returns Returns 0 on success, -1 on failure.
 */
-int hlineRGBA(SDL_Renderer * renderer, float x1, float x2, float y, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
+int hlineRGBA(SDL_Renderer * renderer, Sint16 x1, Sint16 x2, Sint16 y, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
 	int result = 0;
 	result |= SDL_SetRenderDrawBlendMode(renderer, (a == 255) ? SDL_BLENDMODE_NONE : SDL_BLENDMODE_BLEND);
 	result |= SDL_SetRenderDrawColor(renderer, r, g, b, a);
-	result |= SDL_RenderLine(renderer, x1, y, x2, y);
+	result |= SDL_RenderDrawLine(renderer, x1, y, x2, y);
 	return result;
 }
 
@@ -213,9 +213,9 @@ int hlineRGBA(SDL_Renderer * renderer, float x1, float x2, float y, Uint8 r, Uin
 
 \returns Returns 0 on success, -1 on failure.
 */
-int vline(SDL_Renderer * renderer, float x, float y1, float y2)
+int vline(SDL_Renderer * renderer, Sint16 x, Sint16 y1, Sint16 y2)
 {
-	return SDL_RenderLine(renderer, x, y1, x, y2);;
+	return SDL_RenderDrawLine(renderer, x, y1, x, y2);;
 }
 
 /*!
@@ -249,12 +249,12 @@ int vlineColor(SDL_Renderer * renderer, Sint16 x, Sint16 y1, Sint16 y2, Uint32 c
 
 \returns Returns 0 on success, -1 on failure.
 */
-int vlineRGBA(SDL_Renderer * renderer, float x, float y1, float y2, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
+int vlineRGBA(SDL_Renderer * renderer, Sint16 x, Sint16 y1, Sint16 y2, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
 	int result = 0;
 	result |= SDL_SetRenderDrawBlendMode(renderer, (a == 255) ? SDL_BLENDMODE_NONE : SDL_BLENDMODE_BLEND);
 	result |= SDL_SetRenderDrawColor(renderer, r, g, b, a);
-	result |= SDL_RenderLine(renderer, x, y1, x, y2);
+	result |= SDL_RenderDrawLine(renderer, x, y1, x, y2);
 	return result;
 }
 
@@ -293,11 +293,11 @@ int rectangleColor(SDL_Renderer * renderer, Sint16 x1, Sint16 y1, Sint16 x2, Sin
 
 \returns Returns 0 on success, -1 on failure.
 */
-int rectangleRGBA(SDL_Renderer * renderer, float x1, float y1, float x2, float y2, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
+int rectangleRGBA(SDL_Renderer * renderer, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
 	int result;
-	float tmp;
-	SDL_FRect rect;
+	Sint16 tmp;
+	SDL_Rect rect;
 
 	/*
 	* Test for special cases of straight lines or single point 
@@ -346,7 +346,7 @@ int rectangleRGBA(SDL_Renderer * renderer, float x1, float y1, float x2, float y
 	result = 0;
 	result |= SDL_SetRenderDrawBlendMode(renderer, (a == 255) ? SDL_BLENDMODE_NONE : SDL_BLENDMODE_BLEND);
 	result |= SDL_SetRenderDrawColor(renderer, r, g, b, a);	
-	result |= SDL_RenderRect(renderer, &rect);
+	result |= SDL_RenderDrawRect(renderer, &rect);
 	return result;
 }
 
@@ -387,13 +387,13 @@ int roundedRectangleColor(SDL_Renderer * renderer, Sint16 x1, Sint16 y1, Sint16 
 
 \returns Returns 0 on success, -1 on failure.
 */
-int roundedRectangleRGBA(SDL_Renderer * renderer, float x1, float y1, float x2, float y2, float rad, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
+int roundedRectangleRGBA(SDL_Renderer * renderer, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, Sint16 rad, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
 	int result = 0;
-	float tmp;
-	float w, h;
-	float xx1, xx2;
-	float yy1, yy2;
+	Sint16 tmp;
+	Sint16 w, h;
+	Sint16 xx1, xx2;
+	Sint16 yy1, yy2;
 	
 	/*
 	* Check renderer
@@ -732,7 +732,7 @@ int boxRGBA(SDL_Renderer * renderer, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2,
 {
 	int result;
 	Sint16 tmp;
-	SDL_FRect rect;
+	SDL_Rect rect;
 
 	/*
 	* Test for special cases of straight lines or single point 
@@ -803,7 +803,7 @@ int line(SDL_Renderer * renderer, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2)
 	/*
 	* Draw
 	*/
-	return SDL_RenderLine(renderer, x1, y1, x2, y2);
+	return SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 }
 
 /*!
@@ -847,7 +847,7 @@ int lineRGBA(SDL_Renderer * renderer, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2
 	int result = 0;
 	result |= SDL_SetRenderDrawBlendMode(renderer, (a == 255) ? SDL_BLENDMODE_NONE : SDL_BLENDMODE_BLEND);
 	result |= SDL_SetRenderDrawColor(renderer, r, g, b, a);	
-	result |= SDL_RenderLine(renderer, x1, y1, x2, y2);
+	result |= SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 	return result;
 }
 
@@ -1761,11 +1761,7 @@ int filledCircleRGBA(SDL_Renderer * renderer, Sint16 x, Sint16 y, Sint16 rad, Ui
 /* Detect 64bit and use intrinsic version */
 #ifdef _M_X64
 #include <emmintrin.h>
-//static __inline long 
-//	lrint(float f) 
-//{
-//	return _mm_cvtss_si32(_mm_load_ss(&f));
-//}
+
 #elif defined(_M_IX86)
 __inline long int
 	lrint (double flt)
@@ -2493,7 +2489,7 @@ int polygon(SDL_Renderer * renderer, const Sint16 * vx, const Sint16 * vy, int n
 	*/
 	int result = 0;
 	int i, nn;
-	SDL_FPoint* points;
+	SDL_Point* points;
 
 	/*
 	* Vertex array NULL check 
@@ -2516,7 +2512,7 @@ int polygon(SDL_Renderer * renderer, const Sint16 * vx, const Sint16 * vy, int n
 	* Create array of points
 	*/
 	nn = n + 1;
-	points = (SDL_FPoint*)malloc(sizeof(SDL_FPoint) * nn);
+	points = (SDL_Point*)malloc(sizeof(SDL_Point) * nn);
 	if (points == NULL)
 	{
 		return -1;
@@ -2532,7 +2528,7 @@ int polygon(SDL_Renderer * renderer, const Sint16 * vx, const Sint16 * vy, int n
 	/*
 	* Draw 
 	*/
-	result |= SDL_RenderLines(renderer, points, nn);
+	result |= SDL_RenderDrawLines(renderer, points, nn);
 	free(points);
 
 	return (result);
@@ -2944,9 +2940,9 @@ int _HLineTextured(SDL_Renderer *renderer, Sint16 x1, Sint16 x2, Sint16 y, SDL_T
 	Sint16 xtmp;
 	int result = 0;
 	int texture_x_walker;    
-	float texture_y_start;    
-	SDL_FRect source_rect,dst_rect;
-	float pixels_written,write_width;
+	int texture_y_start;    
+	SDL_Rect source_rect,dst_rect;
+	int pixels_written,write_width;
 
 	/*
 	* Swap x1, x2 if required to ensure x1<=x2
@@ -2991,7 +2987,7 @@ int _HLineTextured(SDL_Renderer *renderer, Sint16 x1, Sint16 x2, Sint16 y, SDL_T
 		source_rect.x = texture_x_walker;
 		dst_rect.x= x1;
 		dst_rect.w = source_rect.w;
-		result = (SDL_RenderTexture(renderer, texture, &source_rect, &dst_rect) == 0);
+		result = (SDL_RenderCopy(renderer, texture, &source_rect, &dst_rect) == 0);
 	} else { 
 		/* we need to draw multiple times */
 		/* draw the first segment */
@@ -3000,7 +2996,7 @@ int _HLineTextured(SDL_Renderer *renderer, Sint16 x1, Sint16 x2, Sint16 y, SDL_T
 		source_rect.x = texture_x_walker;
 		dst_rect.x= x1;
 		dst_rect.w = source_rect.w;
-		result |= (SDL_RenderTexture(renderer, texture, &source_rect, &dst_rect) == 0);
+		result |= (SDL_RenderCopy(renderer, texture, &source_rect, &dst_rect) == 0);
 		write_width = texture_w;
 
 		/* now draw the rest */
@@ -3013,7 +3009,7 @@ int _HLineTextured(SDL_Renderer *renderer, Sint16 x1, Sint16 x2, Sint16 y, SDL_T
 			source_rect.w = write_width;
 			dst_rect.x = x1 + pixels_written;
 			dst_rect.w = source_rect.w;
-			result |= (SDL_RenderTexture(renderer, texture, &source_rect, &dst_rect) == 0);
+			result |= (SDL_RenderCopy(renderer, texture, &source_rect, &dst_rect) == 0);
 			pixels_written += write_width;
 		}
 	}
@@ -3242,7 +3238,7 @@ static Uint32 charHeight = 8;
 /*!
 \brief Width for rendering. Autocalculated.
 */
-static float charWidthLocal = 8;
+static Uint32 charWidthLocal = 8;
 
 /*!
 \brief Height for rendering. Autocalculated.
@@ -3371,8 +3367,8 @@ void gfxPrimitivesSetFontRotation(Uint32 rotation)
 */
 int characterRGBA(SDL_Renderer *renderer, Sint16 x, Sint16 y, char c, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
-	SDL_FRect srect;
-	SDL_FRect drect;
+	SDL_Rect srect;
+	SDL_Rect drect;
 	int result;
 	Uint32 ix, iy;
 	const unsigned char *charpos;
@@ -3411,8 +3407,9 @@ int characterRGBA(SDL_Renderer *renderer, Sint16 x, Sint16 y, char c, Uint8 r, U
 		/*
 		* Redraw character into surface
 		*/
-		character =	SDL_CreateSurface(
-			charWidth, charHeight, SDL_PIXELFORMAT_RGBA8888);
+		character =	SDL_CreateRGBSurface(SDL_SWSURFACE,
+			charWidth, charHeight, 32,
+			0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
 		if (character == NULL) {
 			return (-1);
 		}
@@ -3447,13 +3444,13 @@ int characterRGBA(SDL_Renderer *renderer, Sint16 x, Sint16 y, char c, Uint8 r, U
 		if (charRotation>0)
 		{
 			rotatedCharacter = rotateSurface90Degrees(character, charRotation);
-			SDL_DestroySurface(character);
+			SDL_FreeSurface(character);
 			character = rotatedCharacter;
 		}
 
 		/* Convert temp surface into texture */
 		gfxPrimitivesFont[ci] = SDL_CreateTextureFromSurface(renderer, character);
-		SDL_DestroySurface(character);
+		SDL_FreeSurface(character);
 
 		/*
 		* Check pointer 
@@ -3473,7 +3470,7 @@ int characterRGBA(SDL_Renderer *renderer, Sint16 x, Sint16 y, char c, Uint8 r, U
 	/*
 	* Draw texture onto destination 
 	*/
-	result |= SDL_RenderTexture(renderer, gfxPrimitivesFont[ci], &srect, &drect);
+	result |= SDL_RenderCopy(renderer, gfxPrimitivesFont[ci], &srect, &drect);
 
 	return (result);
 }

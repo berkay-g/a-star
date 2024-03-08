@@ -37,14 +37,14 @@ extern "C" {
 
 	/* --- */
 
-#include "SDL3/SDL.h"
+#include "SDL.h"
 
 	/* --------- Definitions */
 
 	/*!
 	\brief Highest possible rate supported by framerate controller in Hz (1/s).
 	*/
-#define FPS_UPPER_LIMIT		360
+#define FPS_UPPER_LIMIT		200
 
 	/*!
 	\brief Lowest possible rate supported by framerate controller in Hz (1/s).
